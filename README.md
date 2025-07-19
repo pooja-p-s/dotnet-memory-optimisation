@@ -1,28 +1,104 @@
-#TradingPlatform Project
+# TradingPlatform Project
 
-### Stack Allocation 
-# Stack allocation is a memory management technique that allows for efficient use of memory by allocating space on the stack rather than the heap.
-# Utilize "stackalloc" for efficient temporary memory storage, reducing heap memory usage.
-# Avoid unnecessary heap allocations by using stackalloc for temporary arrays or buffers.
+**Boosting Performance with Unsafe Code in .NET**
+
+This project demonstrates high-performance memory manipulation techniques using `unsafe` code in .NET. The goal is to build a performant trading application that leverages low-level optimizations using pointer arithmetic, stack allocation, unmanaged memory, and fixed-size buffers.
+
+---
+
+## ✅ Project Setup
+
+### Features Implemented
+
+- Enabled `unsafe` code in the project file.
+- Integrated pointer types and `fixed` statements for optimized order management.
+- Utilized `stackalloc` for temporary memory allocation.
+- Employed fixed-size buffers to efficiently manage trade reporting.
+- Combined all concepts to build a Bulk Order Cancellation feature.
+
+---
+
+## 🛠️ Technical Breakdown
+
+### 🔧 Enabling Unsafe Code
+
+Modify the `.csproj` file to enable unsafe code:
+
+```xml
+<PropertyGroup>
+  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+</PropertyGroup>
+
+[C# Unsafe Code](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/unsafe-code)
+
+[Pointer Types](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/unsafe-code#pointer-types)
 
 
-### Use Pointer Types to Manage and Update the Order Book Efficiently
+## 📁 Project Structure
 
-# Declare and initailize Pointer types for order book entries
-# Implement metjods to add and remove entries from the order book using pointer types.
-# Utilize "NativeMemory" for for unmanaged memory allocation and deallocation.
+/TradingPlatform
+├── Program.cs
+├── TradingPlatform.csproj
+├── README.md
+
+├── Core/
+│   ├── Trade.cs
+│   ├── OrderBook.cs
+│   ├── OrderCancellationRequest.cs
+│   ├── PriceNotificationEventArgs.cs
+│   └── User.cs
+
+├── Services/
+│   ├── TradeLogger.cs
 
 
-##Fixed Statement
-# Use the "fixed" statement to pin memory locations for pointer types, ensuring that the garbage collector does not move them during execution.
-# This is particularly useful when working with unmanaged memory or when interfacing with native code.
-# The fixed statement allows you to work with pointers safely, ensuring that
+---
 
-#Memory safety
-#Pin variables during critical operations to ensure
-stable pointers and avoid data corruption.
+## 📦 Requirements
 
+- .NET 7.0 or later
+- Enable `unsafe` context in the project settings
+- Visual Studio / JetBrains Rider / VS Code with C# extension
 
-#Fixed Size Buffers
-# Use fixed-size buffers to manage memory efficiently, especially for scenarios where the size of the data is known at compile time.
-# Fixed-size buffers allow for direct memory access and manipulation, improving performance in scenarios like order book management or high-frequency trading applications.
+---
+
+## ▶️ Run the Project
+
+```bash
+dotnet build
+dotnet run
+
+# Branches
+
+- main
+    Setting Up the Project and Implementing Basic Order Book Initialization
+    ● Enable Unsafe Code: Modify your project file to allow unsafe code, enabling the use of pointers for performance optimization.
+    ● Pointer Types: Use pointer types to gain direct access to memory for faster data manipulation.
+    ● Stack Allocation: Utilize stackalloc for efficient temporary storage, reducing heap memory
+    usage.
+
+- pointer-orderbook-and-events
+    Implementing the Order Book with Pointer Types
+    ● Pointer Arithmetic: Traverse and manipulate data structures efficiently using pointers.
+    ● Native Memory Management: Allocate and free unmanaged memory with NativeMemory for
+    precise control over memory usage.
+
+- simulate-incoming-orders
+    Using Fixed and Moveable Variables for Price Notifications
+    ● Fixed Statement: Use the fixed statement to pin variables in memory and prevent garbage collection from relocating them.
+    in variables during critical operations to ensure stable pointers and avoid data corruption
+    ● Memory Safety: Pin variables during critical operations to ensure stable pointers and avoid data corruption.
+
+- order-fulfillment
+    Pointer Conversions and Expressions in Order Fulfillment
+    ● Pointer Conversions: Convert between different pointer types as needed for flexible memory manipulation.
+    ● Pointer Arithmetic: Perform arithmetic operations on pointers to efficiently traverse and manage data.
+    ● Data Integrity: Maintain data integrity by using proper pointer conversions and arithmetic techniques.
+
+- trade_report_generation
+    Generate Trade Report And Log 
+
+- cancel-order
+    Implementing Fixed-Size Buffers and Stack Allocation for Order Cancellation
+    ● Fixed-Size Buffers: Declare fixed-size buffers to ensure predictable memory usage and improve performance.
+    ● Manual Memory Management: Optimize performance in high-frequency applications by mastering manual memory management techniques.
