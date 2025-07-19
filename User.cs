@@ -4,6 +4,7 @@ namespace TradingPlatform
     {
         public int UserId { get; set; }
         public string Name { get; set; }
+        public double Balance { get; set; }
         public List<double> BuyTargetPrices { get; private set; }
         public List<double> SellTargetPrices { get; private set; }
 

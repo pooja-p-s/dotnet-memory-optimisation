@@ -6,24 +6,46 @@ namespace TradingPlatform
     {
         static void Main(string[] args)
         {
-            User user1 = new User(1, "Alice");
 
-            user1.SubscribeToBuyTargetPrice(99.0);
-            user1.SubscribeToBuyTargetPrice(100.0);
-            user1.SubscribeToSellTargetPrice(105.0);
-            user1.SubscribeToSellTargetPrice(101.0);
+            int size = 10; // Define the size of the order book
 
-            OrderBook orderBook = new OrderBook();
-            orderBook.PriceNotification += user1.OnPriceNotification;
+            OrderBook orderBook = new OrderBook(size);
+            SimularIncomingOrders(orderBook, size);
 
-            Order newBuyOrder = new Order { Id = 1, IsBuyOrder = true, Price = 101.5, Quantity = 100 };
-            orderBook.AddOrder(newBuyOrder);
-
-            Order newSellOrder = new Order { Id = 2, IsBuyOrder = false, Price = 102.5, Quantity = 50 };
-            orderBook.AddOrder(newSellOrder);
+            User buyer = new User(1, "Alice");
+            buyer.Balance = 10000; // Set initial balance
+    
+            int lowestSellIndex;
+            double lowestSellPrice = orderBook.GetLowestSellPrice(out lowestSellIndex);
+            Console.WriteLine($"Lowest Sell Price: {lowestSellPrice} at Index: {lowestSellIndex}");
 
             orderBook.PrintOrders();
+
+            bool purchaseSuccess = orderBook.BuyAtLowestSellPrice(20, 150, buyer);
+
+            orderBook.PrintOrders();    
+        }
+
+        static void SimularIncomingOrders(OrderBook orderBook, int size)
+        {
+            Order[] orders = new Order[size];
+
+            unsafe{
+                fixed (Order* ordersPtr = orders)
+                {
+                    for(int i = 0; i < size; i++)
+                    {
+                        if(i<size/2){
+                            ordersPtr[i] = new Order { Id = i + 1, IsBuyOrder = true, Price = 100 + i, Quantity = 10 + i };
+                        }
+                        else{
+                            // Set sell order prices BELOW or EQUAL to 20 for testing
+                            ordersPtr[i] = new Order { Id = i + 1, IsBuyOrder = false, Price = 10 + i, Quantity = 15 + i };
+                        }
+                        orderBook.AddOrder(ordersPtr[i]);
+                    }
+                }
+            }
         }
     }
-
 }

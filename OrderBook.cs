@@ -4,25 +4,22 @@ namespace TradingPlatform
     using System.Collections.Generic;
     using System.Runtime.InteropServices;
 
-    //unsafe is added with all functions for readability 
-    //Explaining usage of NativeMemory and unsafe code in C#.
-
     public unsafe class OrderBook
     {
-        const int size = 10;
+        private int size;
 
         Order* buyOrders;
         Order* sellOrders;
 
         public delegate void PriceNotificationHandler(object sender, PriceNotificationEventArgs e);
- 
         public event PriceNotificationHandler? PriceNotification;
 
         private double highestBuyPrice;
         private double lowestSellPrice;
 
-        public OrderBook()
+        public OrderBook(int size)
         {
+            this.size = size;
             buyOrders = (Order*)NativeMemory.Alloc((nuint)size, (nuint)sizeof(Order));
             sellOrders = (Order*)NativeMemory.Alloc((nuint)size, (nuint)sizeof(Order));
             
@@ -46,6 +43,63 @@ namespace TradingPlatform
             NativeMemory.Free(buyOrders);
             NativeMemory.Free(sellOrders);
         } 
+        
+        public unsafe double GetLowestSellPrice(out int lowestSellIndex)
+        {
+            lowestSellIndex = -1;
+            double lowestSellPrice = double.MaxValue;
+            for (int i = 0; i < size; i++)
+            {
+                if (sellOrders[i].Id != 0 && sellOrders[i].Price < lowestSellPrice)
+                {
+                    lowestSellPrice = sellOrders[i].Price;
+                    lowestSellIndex = i;        
+                }
+            }
+            return lowestSellPrice == double.MaxValue ? -1 : lowestSellPrice;
+        }   
+
+        public unsafe bool BuyAtLowestSellPrice(double maxPrice, int buyQuantity, User buyer)
+        {
+            int remainingQuantity = buyQuantity;
+            double totalCost = 0;
+
+            while (remainingQuantity > 0)
+            {
+                int lowestSellIndex;
+                double lowestSellPrice = GetLowestSellPrice(out lowestSellIndex);
+
+                if (lowestSellPrice > maxPrice || lowestSellIndex == -1)
+                {
+                    Console.WriteLine("No valid sell order found within the specified price.");
+                    break;
+                }
+
+                Order* matchedSellOrder = &sellOrders[lowestSellIndex];
+                int matchedQuantity = Math.Min(matchedSellOrder->Quantity, remainingQuantity);
+                double cost = matchedQuantity * lowestSellPrice;
+
+                if (buyer.Balance < cost)
+                {
+                    Console.WriteLine("Insufficient balance to buy at the lowest sell price.");
+                    break;
+                }
+
+                matchedSellOrder->Quantity -= matchedQuantity;
+                buyer.Balance -= cost;
+                totalCost += cost;
+                remainingQuantity -= matchedQuantity;
+
+                Console.WriteLine($"Bought {matchedQuantity} units at {lowestSellPrice} each. Cost: {cost}. Remaining balance: {buyer.Balance}");
+
+                if (matchedSellOrder->Quantity == 0)
+                {
+                    RemoveOrder(matchedSellOrder->Id);
+                }
+            }
+
+            return buyQuantity != remainingQuantity; // true if any quantity was bought
+        }
 
         public unsafe void AddOrder(Order newOrder)
         {
@@ -68,17 +122,17 @@ namespace TradingPlatform
                 if (buyOrders[i].Id == orderId)
                 {
                     targetOrders = buyOrders;
-                    orderIndex = -1;
+                    orderIndex = i;
                     break;
                 }
                 else if (sellOrders[i].Id == orderId)
                 {
                     targetOrders = sellOrders;
-                    orderIndex = -1;
+                    orderIndex = i;
                     break;
                 }
             }
-            if (targetOrders != null)
+            if (targetOrders != null && orderIndex != -1)
             {
                 targetOrders[orderIndex] = new Order(); // Reset the order
             }
@@ -104,9 +158,30 @@ namespace TradingPlatform
                 }
             }
         }
+
+        public unsafe void ModifyOrder(int orderId, double newPrice, int newQuantity)
+        {
+            for (int i = 0; i < size; i++)
+            {
+                if (buyOrders[i].Id == orderId)
+                {
+                    buyOrders[i].Price = newPrice;
+                    buyOrders[i].Quantity = newQuantity;
+                    UpdateAndNotify();
+                    break;
+                }
+                else if (sellOrders[i].Id == orderId)
+                {
+                    sellOrders[i].Price = newPrice;
+                    sellOrders[i].Quantity = newQuantity;
+                    UpdateAndNotify();
+                    break;
+                }
+            }
+        }
+
         private unsafe void UpdateAndNotify()
         {
-
             fixed(double * fixedHighestBuyPrice = &highestBuyPrice, 
                   fixedLowestSellPrice = &lowestSellPrice)
             {
@@ -134,7 +209,6 @@ namespace TradingPlatform
                     }
                 }    
             }
-            
         }
     }
 }
