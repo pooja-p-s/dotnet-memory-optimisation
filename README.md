@@ -21,3 +21,8 @@
 #Memory safety
 #Pin variables during critical operations to ensure
 stable pointers and avoid data corruption.
+
+
+#Fixed Size Buffers
+# Use fixed-size buffers to manage memory efficiently, especially for scenarios where the size of the data is known at compile time.
+# Fixed-size buffers allow for direct memory access and manipulation, improving performance in scenarios like order book management or high-frequency trading applications.
