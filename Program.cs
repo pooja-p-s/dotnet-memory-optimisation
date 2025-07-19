@@ -6,25 +6,43 @@ namespace TradingPlatform
     {
         static void Main(string[] args)
         {
-            TradeLogger tradeLogger = new TradeLogger();
+            OrderBook orderBook = new OrderBook(100);
 
-            Random rand = new Random();
+            SimulateIncomingOrders(orderBook, 10);
 
-            for (int i = 0; i < 10; i++)
+            OrderCancellationRequest[] cancellations = new OrderCancellationRequest[]
             {
-                Trade trade = new Trade
+                new OrderCancellationRequest { OrderId = 1 },
+                new OrderCancellationRequest { OrderId = 5 },
+                new OrderCancellationRequest { OrderId = 7 }
+            };
+
+            orderBook.PrintOrders();
+
+            orderBook.BulkCancelOrders(cancellations);
+
+            orderBook.PrintOrders();
+        }
+        static void SimulateIncomingOrders(OrderBook orderBook, int size)
+        {
+            Order[] orders = new Order[size];
+
+            unsafe{
+                fixed (Order* ordersPtr = orders)
                 {
-                    TradeId = i + 1,
-                    OrderId = (i%50) + 1,
-                    Price = 100 + (i*20),
-                    Quantity = 10 + (i%5),
-                    Timestamp = DateTime.Now.AddDays(-rand.Next(1, 30))
-                };
-
-                tradeLogger.LogTrade(trade);
-            } 
-
-            tradeLogger.FinalizeLogging();
+                    for(int i = 0; i < size; i++)
+                    {
+                        if(i<size/2){
+                            ordersPtr[i] = new Order { Id = i + 1, IsBuyOrder = true, Price = 100 + i, Quantity = 10 + i };
+                        }
+                        else{
+                            // Set sell order prices BELOW or EQUAL to 20 for testing
+                            ordersPtr[i] = new Order { Id = i + 1, IsBuyOrder = false, Price = 10 + i, Quantity = 15 + i };
+                        }
+                        orderBook.AddOrder(ordersPtr[i]);
+                    }
+                }
+            }
         }
     }
 }
